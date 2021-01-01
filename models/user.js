@@ -48,13 +48,6 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// query middleware
-userSchema.pre(/^find/, function (next) {
-  // this points to the current query
-  this.find({ active: { $ne: false } });
-  next();
-});
-
 // compare for passwords
 userSchema.methods.correctPassword = async function (
   candidatePassword,

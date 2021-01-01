@@ -4,7 +4,6 @@ const cartSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.ObjectId,
     ref: 'Product',
-    required: [true, 'Booking must belong to a Tour'],
   },
   quantity: {
     type: Number,
@@ -17,10 +16,7 @@ const cartSchema = new mongoose.Schema({
 });
 
 cartSchema.pre(/^find/, function (next) {
-  this.populate('product').populate({
-    path: 'user',
-    select: 'name',
-  });
+  this.populate('product');
   next();
 });
 
