@@ -38,7 +38,7 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // DB connection
 
@@ -48,20 +48,6 @@ connectDB();
 app.use(express.json());
 
 // Routes
-/**
- * @swagger
- * /:
- *  get:
- *    description: Use to request all customers
- *    summary: Index Route
- *    responses:
- *      '200':
- *        description: A successful response
- */
-app.get('/', (req, res) => {
-  res.send('<h1>Ecommerce API!</h1>');
-});
-
 app.use('/api/users', require('./routes/userRoute'));
 app.use('/api/products', require('./routes/productRoute'));
 app.use('/api/cart', require('./routes/cartRoute'));

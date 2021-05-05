@@ -13,7 +13,7 @@ exports.connectDB = async () => {
     console.log('DB connected');
   } catch (err) {
     console.error(err.message);
-    //exit process wiz failure
+    //exit process on failure
     process.exit(1);
   }
 };
