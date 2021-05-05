@@ -6,16 +6,28 @@ const AppError = require('../utils/appError');
 
 exports.addToCart = catchAsync(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
-
-  const cartCheck = await Cart.find({ product });
+  const cartCheck = await Cart.find({ user: req.user._id });
   if (cartCheck.length == 0) {
-    await Cart.create({ product, user: req.user });
+    let total_price = req.body.quantity * product.price;
+    const newProduct = [];
+    newProduct.push({
+      product,
+      quantity: req.body.quantity,
+      total_price,
+    });
+
+    await Cart.create({ products: newProduct, user: req.user });
     res.status(201).json({ status: 'success' });
   } else {
-    let cartQuantity = cartCheck[0].quantity;
-    cartQuantity += 1;
-    await Cart.findOneAndUpdate({ product }, { quantity: cartQuantity });
-    res.status(200).json({ status: 'success' });
+    // let cartQuantity = cartCheck[0].quantity;
+    // cartQuantity += 1;
+    // await Cart.findOneAndUpdate({ product }, { quantity: cartQuantity });
+    // res.status(200).json({ status: 'success' });
+    console.log(cartCheck);
+    const prodCheck = cartCheck[0].products.filter(
+      product => product.product._id === req.params.id
+    );
+    console.log('ProdCheck: ', prodCheck);
   }
 });
 
@@ -40,7 +52,6 @@ const getTotalPrice = async req => {
     const cartItems = await Cart.find({ user: req.user._id });
     let totalPrice = 0;
     if (cartItems.length != 0) {
-      console.log(cartItems);
       cartItems.forEach(item => {
         totalPrice += item.quantity * item.product.price;
       });
@@ -83,8 +94,8 @@ exports.getCartItemDetails = catchAsync(async (req, res, next) => {
 });
 
 exports.getCartItems = catchAsync(async (req, res) => {
-  const ttlPrice = await getTotalPrice(req);
-  const ttlQuantity = await getTotalQuantity(req);
+  // const ttlPrice = await getTotalPrice(req);
+  // const ttlQuantity = await getTotalQuantity(req);
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 15;
 
@@ -97,8 +108,8 @@ exports.getCartItems = catchAsync(async (req, res) => {
   res.status(200).json({
     status: 'success',
     results: cartItems.length,
-    totalPrice: ttlPrice,
-    totalQuantity: ttlQuantity,
+    // totalPrice: ttlPrice,
+    // totalQuantity: ttlQuantity,
     data: {
       data: cartItems,
     },
