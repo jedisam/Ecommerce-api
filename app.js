@@ -38,7 +38,6 @@ const swaggerOptions = {
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
-app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // DB connection
 
@@ -51,6 +50,9 @@ app.use(express.json());
 app.use('/api/users', require('./routes/userRoute'));
 app.use('/api/products', require('./routes/productRoute'));
 app.use('/api/cart', require('./routes/cartRoute'));
+
+// swagger Documentation
+app.use('/', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // ERROR HANDLER
 app.use(errorHandling);

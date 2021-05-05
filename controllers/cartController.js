@@ -9,7 +9,7 @@ exports.addToCart = catchAsync(async (req, res, next) => {
 
   const cartCheck = await Cart.find({ product });
   if (cartCheck.length == 0) {
-    await Cart.create({ product });
+    await Cart.create({ product, user: req.user });
     res.status(201).json({ status: 'success' });
   } else {
     let cartQuantity = cartCheck[0].quantity;
@@ -20,7 +20,7 @@ exports.addToCart = catchAsync(async (req, res, next) => {
 });
 
 exports.showTotalPrice = catchAsync(async (req, res, next) => {
-  const totalPrice = await getTotalPrice();
+  const totalPrice = await getTotalPrice(req);
   res.status(200).json({
     status: 'success',
     totalPrice,
@@ -28,19 +28,19 @@ exports.showTotalPrice = catchAsync(async (req, res, next) => {
 });
 
 exports.ShowTotalQunatity = catchAsync(async (req, res, next) => {
-  const totalQuantity = await getTotalQuantity();
+  const totalQuantity = await getTotalQuantity(req);
   res.status(200).json({
     status: 'success',
     totalQuantity,
   });
 });
 
-const getTotalPrice = async () => {
+const getTotalPrice = async req => {
   try {
-    const cartItems = await Cart.find();
+    const cartItems = await Cart.find({ user: req.user._id });
     let totalPrice = 0;
     if (cartItems.length != 0) {
-      // console.log(cartItems);
+      console.log(cartItems);
       cartItems.forEach(item => {
         totalPrice += item.quantity * item.product.price;
       });
@@ -52,9 +52,9 @@ const getTotalPrice = async () => {
   }
 };
 
-const getTotalQuantity = async () => {
+const getTotalQuantity = async req => {
   try {
-    const cartItems = await Cart.find();
+    const cartItems = await Cart.find({ user: req.user._id });
     let totalQuantity = 0;
     if (cartItems.length != 0) {
       // console.log(cartItems);
@@ -83,13 +83,16 @@ exports.getCartItemDetails = catchAsync(async (req, res, next) => {
 });
 
 exports.getCartItems = catchAsync(async (req, res) => {
-  const ttlPrice = await getTotalPrice();
-  const ttlQuantity = await getTotalQuantity();
+  const ttlPrice = await getTotalPrice(req);
+  const ttlQuantity = await getTotalQuantity(req);
   const page = req.query.page * 1 || 1;
   const limit = req.query.limit * 1 || 15;
 
   const skip = (page - 1) * limit;
-  const cartItems = await Cart.find().sort('createdAt').skip(skip).limit(limit);
+  const cartItems = await Cart.find({ user: req.user._id })
+    .sort('createdAt')
+    .skip(skip)
+    .limit(limit);
 
   res.status(200).json({
     status: 'success',

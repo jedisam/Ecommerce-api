@@ -14,6 +14,11 @@ const router = express.Router();
 
 router.use(protect); // protect all routes
 
+// router.get('/myp', (req, res) => {
+//   console.log('The User: ', req.user);
+//   return res.json({ message: 'Sup' });
+// });
+
 /**
  * @swagger
  * /api/products:
