@@ -7,6 +7,7 @@ const AppError = require('../utils/appError');
 exports.addToCart = catchAsync(async (req, res, next) => {
   const product = await Product.findById(req.params.id);
   const cartCheck = await Cart.find({ user: req.user._id });
+
   if (cartCheck.length == 0) {
     let total_price = req.body.quantity * product.price;
     const newProduct = [];
@@ -23,11 +24,93 @@ exports.addToCart = catchAsync(async (req, res, next) => {
     // cartQuantity += 1;
     // await Cart.findOneAndUpdate({ product }, { quantity: cartQuantity });
     // res.status(200).json({ status: 'success' });
-    console.log(cartCheck);
-    const prodCheck = cartCheck[0].products.filter(
-      product => product.product._id === req.params.id
+    // console.log(cartCheck);
+    let productExists = cartCheck[0].products.find(
+      product => product.product._id == req.params.id
     );
-    console.log('ProdCheck: ', prodCheck);
+    // console.log(req.params.id);
+    // console.log('ProdCheck: ', prodCheck);
+    if (productExists) {
+      // await Cart.findOneAndUpdate({})
+      productExists.quantity += req.body.quantity;
+      productExists.total_price =
+        productExists.quantity * productExists.product.price;
+      // const updated = await Cart.save();
+      // res.status(200).json({ status: 'success', data: updated });
+
+      const newProduct = {
+        product: req.params.id,
+        quantity: productExists.quantity,
+        total_price: productExists.total_price,
+      };
+
+      // console.log(cartCheck[0]);
+
+      // const upd = await Cart.findByIdAndUpdate(
+      //   cartCheck[0]._id,
+      //   { 'products.product._id': req.params._id },
+      //   {
+      //     $set: {
+      //       'products.product.quantity': productExists.quantity,
+      //       'products.product.total_price': productExists.total_price,
+      //     },
+      //   }
+      // );
+      // res.status(200).send({
+      //   status: 'success',
+      //   data: upd,
+      // });
+
+      // Cart.update(
+      //   { 'products.product._id': req.params.id },
+      //   {
+      //     $set: {
+      //       // 'products.product.$.post': 'this is Update comment',
+      //       'products.product.quantity': productExists.quantity,
+      //       'products.product.total_price': productExists.total_price,
+      //     },
+      //   },
+      //   function (err, model) {
+      //     if (err) {
+      //       console.log(err);
+      //       return res.send(err);
+      //     }
+      //     return res.json(model);
+      //   }
+      // );
+      // const itemAvailableInCart = await Cart.find({
+      //   'products.product._id': req.params.id,
+      // });
+
+      await Cart.findByIdAndUpdate(
+        cartCheck[0]._id,
+        { $pull: { products: { product: req.params.id } } },
+        { useFindAndModify: false, new: true }
+      );
+
+      // Cart.findByIdAndUpdate(
+      //   cartCheck[0]._id,
+      //   { $pull: { products: { _id: req.params.id } } },
+      //   function (err, model) {
+      //     if (err) {
+      //       console.log(err);
+      //       return res.send(err);
+      //     }
+
+      //     return res.json({ dat: model, pulled: true });
+      //   }
+      // );
+
+      const newCart = await Cart.findByIdAndUpdate(
+        cartCheck[0]._id,
+        { $push: { products: newProduct } },
+        { useFindAndModify: false, new: true }
+      );
+      res.status(201).send({
+        status: 'success',
+        data: newCart,
+      });
+    }
   }
 });
 
