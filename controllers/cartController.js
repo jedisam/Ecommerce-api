@@ -106,6 +106,22 @@ exports.addToCart = catchAsync(async (req, res, next) => {
         { $push: { products: newProduct } },
         { useFindAndModify: false, new: true }
       );
+      return res.status(201).send({
+        status: 'success',
+        data: newCart,
+      });
+    } else {
+      const newProduct = {
+        product: req.params.id,
+        quantity: req.body.quantity,
+        total_price: req.body.quantity * product.price,
+      };
+
+      const newCart = await Cart.findByIdAndUpdate(
+        cartCheck[0]._id,
+        { $push: { products: newProduct } },
+        { useFindAndModify: false, new: true }
+      );
       res.status(201).send({
         status: 'success',
         data: newCart,
@@ -201,7 +217,26 @@ exports.getCartItems = catchAsync(async (req, res) => {
 
 exports.removeFromCart = catchAsync(async (req, res, next) => {
   const productId = req.params.id;
-  const cartItem = await Cart.findOneAndDelete({ product: productId });
+  const cartCheck = await Cart.find({ user: req.user._id });
+  if (cartCheck.length == 0) {
+    return next(new AppError('Product not found in user collection', 404));
+  }
+
+  const productCheck = cartCheck[0].products.find(
+    product => product.product._id == productId
+  );
+
+  if (!productCheck) {
+    console.log('Not found');
+    return next(new AppError('No Product Found with the given ID', 404));
+  }
+
+  const cartItem = await Cart.findByIdAndUpdate(
+    cartCheck[0]._id,
+    { $pull: { products: { product: productId } } },
+    { useFindAndModify: false, new: true }
+  );
+
   if (!cartItem) {
     console.log('Not found');
     return next(new AppError('No Product Found with the given ID', 404));
